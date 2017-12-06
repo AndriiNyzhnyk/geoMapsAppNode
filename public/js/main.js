@@ -26,17 +26,30 @@ window.onload = function () {
         });
     }
 
+    function sendDataUser(userName, lat, lng) {
+        return new Promise(resolve => {
+            let dataUser = {
+                userName,
+                lat,
+                lng
+            };
+
+            socket.emit('addUser', dataUser);
+            resolve(true);
+        });
+    }
+
     (async function init() {
         const userName = prompt('Hello! What is your name ?');
         let position = await getPosition();
 
         if(userName && position.lat && position.lng) {
-            // socket.emit('addUser', dateUser);
             createMap(position.lat, position.lng);
             addMarker(position.lat, position.lng);
         }
+
+        let status = await sendDataUser(userName, position.lat, position.lng)
+        if(status) console.log('data send');
     })();
 
 };
-
-

@@ -14,6 +14,7 @@ app.get("/", (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('connect');
+
     socket.on('addUser', (dateUser) => {
         console.log(dateUser);
     });
