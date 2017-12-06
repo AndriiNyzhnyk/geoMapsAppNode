@@ -1,19 +1,5 @@
 window.onload = function () {
     const socket = io();
-    let myMap;
-
-    function createMap(lat, lng) {
-        myMap = L.map('mapid').setView([lat, lng], 13);
-        L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(myMap);
-    }
-
-    function addMarker(lat,lng) {
-        const marker = L.marker([lat,lng]).addTo(myMap);
-    }
-
-    function removeMarker() {
-
-    }
 
     function getPosition() {
         return new Promise(resolve => {
@@ -25,6 +11,26 @@ window.onload = function () {
 
         });
     }
+
+    function createMap(lat, lng) {
+        return new Promise( resolve => {
+            let myMap = L.map('mapid').setView([lat, lng], 13);
+            L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(myMap);
+            resolve(myMap);
+        });
+    }
+
+    function addMarker(myMap, lat, lng) {
+        return new  Promise(resolve => {
+            const marker = L.marker([lat,lng]).addTo(myMap);
+            resolve();
+        });
+    }
+
+    function removeMarker() {
+
+    }
+
 
     function sendDataUser(userName, lat, lng) {
         return new Promise(resolve => {
@@ -40,16 +46,21 @@ window.onload = function () {
     }
 
     (async function init() {
-        const userName = prompt('Hello! What is your name ?');
-        let position = await getPosition();
+        try {
+            const userName = prompt('Hello! What is your name ?');
+            let position = await getPosition();
 
-        if(userName && position.lat && position.lng) {
-            createMap(position.lat, position.lng);
-            addMarker(position.lat, position.lng);
+            if(userName && position.lat && position.lng) {
+                let myMap = await createMap(position.lat, position.lng);
+                await addMarker(myMap, position.lat, position.lng);
+            }
+
+            let status = await sendDataUser(userName, position.lat, position.lng)
+            if(status) console.log('data send to server');
+        } catch(e) {
+            console.error(e);
         }
 
-        let status = await sendDataUser(userName, position.lat, position.lng)
-        if(status) console.log('data send');
     })();
 
 };
