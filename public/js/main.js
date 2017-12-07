@@ -1,11 +1,10 @@
 window.onload = function () {
     const socket = io();
     let map;
-    let marker;
 
     function getPosition() {
         return new Promise(resolve => {
-            navigator.geolocation.getCurrentPosition( (position) => {
+            navigator.geolocation.getCurrentPosition( position => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 resolve({lat,lng});
@@ -24,24 +23,26 @@ window.onload = function () {
     }
 
     function addMarker(myMap, userName, lat, lng) {
-        return new  Promise(resolve => {
-            marker = L.marker([lat,lng]);
-            console.log(marker);
-            marker.addTo(myMap);
-            marker.bindPopup(userName).openPopup();
-            resolve();
+        return new Promise(resolve => {
+            const marker = new L.marker([lat,lng])
+                .addTo(myMap)
+                .bindPopup(userName).openPopup();
+
+            // removeMarker(marker);
+            // myMap.addLayer(marker);
+            resolve(marker);
         });
     }
 
-    function removeMarker(deleteUser) {
+    function removeMarker(marker) {
         map.removeLayer(marker);
-        console.log(deleteUser.userName + ' deleteUser');
     }
 
 
-    function sendDataUser(userName, lat, lng) {
+    function sendDataUser(marker, userName, lat, lng) {
         return new Promise(resolve => {
             let dataUser = {
+                marker: marker,
                 userName,
                 lat,
                 lng
@@ -61,9 +62,11 @@ window.onload = function () {
 
             if(userName && lat && lng) {
                 let myMap = await createMap(lat, lng);
-                await addMarker(myMap, userName, lat, lng);
-                let status = await sendDataUser(userName, lat, lng);
+                let marker = await addMarker(myMap, userName, lat, lng);
+                let status = await sendDataUser(marker, userName, lat, lng);
                 if(status) console.log('data send to server');
+            } else {
+                alert("Data incorrect");
             }
 
         } catch(e) {
@@ -88,10 +91,9 @@ window.onload = function () {
         console.log(`dataUser ${dataUser}`);
         addMarker(map, dataUser.userName, dataUser.lat, dataUser.lng);
     });
-
-    socket.on('deleteUser', (deleteUser) => {
-        removeMarker(deleteUser);
+    
+    socket.on('deleteUser', (user) => {
+        console.log(user);
     });
-
 
 };

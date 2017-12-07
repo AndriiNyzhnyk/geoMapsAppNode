@@ -26,7 +26,6 @@ io.on('connection', (socket) => {
         delete connectedUsers[socket.id];
     });
 
-
 });
 
 
