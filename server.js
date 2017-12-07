@@ -15,10 +15,20 @@ app.get("/", (req, res) => {
 io.on('connection', (socket) => {
     console.log('connect');
 
-    socket.on('addUser', (dateUser) => {
-        console.log(dateUser);
+    socket.on('addUser', (dataUser) => {
+        connectedUsers[socket.id] = dataUser;
+        socket.emit('allUsers', connectedUsers);
+        io.sockets.emit('newUser', dataUser);
     });
+
+    socket.on('disconnect', () => {
+        io.sockets.emit('deleteUser', connectedUsers[socket.id] );
+        delete connectedUsers[socket.id];
+    });
+
+
 });
+
 
 server.listen(app.get('port'), () => {
     console.log( 'Express запущенний на http://localhost:' +

@@ -1,5 +1,7 @@
 window.onload = function () {
     const socket = io();
+    let map;
+    let marker;
 
     function getPosition() {
         return new Promise(resolve => {
@@ -16,19 +18,24 @@ window.onload = function () {
         return new Promise( resolve => {
             let myMap = L.map('mapid').setView([lat, lng], 13);
             L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(myMap);
+            map = myMap;
             resolve(myMap);
         });
     }
 
-    function addMarker(myMap, lat, lng) {
+    function addMarker(myMap, userName, lat, lng) {
         return new  Promise(resolve => {
-            const marker = L.marker([lat,lng]).addTo(myMap);
+            marker = L.marker([lat,lng]);
+            console.log(marker);
+            marker.addTo(myMap);
+            marker.bindPopup(userName).openPopup();
             resolve();
         });
     }
 
-    function removeMarker() {
-
+    function removeMarker(deleteUser) {
+        map.removeLayer(marker);
+        console.log(deleteUser.userName + ' deleteUser');
     }
 
 
@@ -48,19 +55,43 @@ window.onload = function () {
     (async function init() {
         try {
             const userName = prompt('Hello! What is your name ?');
-            let position = await getPosition();
+            const position = await getPosition();
+            const lat = position.lat;
+            const lng = position.lng;
 
-            if(userName && position.lat && position.lng) {
-                let myMap = await createMap(position.lat, position.lng);
-                await addMarker(myMap, position.lat, position.lng);
+            if(userName && lat && lng) {
+                let myMap = await createMap(lat, lng);
+                await addMarker(myMap, userName, lat, lng);
+                let status = await sendDataUser(userName, lat, lng);
+                if(status) console.log('data send to server');
             }
 
-            let status = await sendDataUser(userName, position.lat, position.lng)
-            if(status) console.log('data send to server');
         } catch(e) {
             console.error(e);
         }
 
     })();
+
+    socket.on('allUsers', (connectedUsers) => {
+        for(marker in connectedUsers) {
+            const userName = connectedUsers[marker].userName;
+            const lat = connectedUsers[marker].lat;
+            const lng = connectedUsers[marker].lng;
+
+            addMarker(map, userName, lat, lng);
+        }
+        console.log(connectedUsers);
+        console.log('allUsers');
+    });
+
+    socket.on('newUser', (dataUser) => {
+        console.log(`dataUser ${dataUser}`);
+        addMarker(map, dataUser.userName, dataUser.lat, dataUser.lng);
+    });
+
+    socket.on('deleteUser', (deleteUser) => {
+        removeMarker(deleteUser);
+    });
+
 
 };
