@@ -25,7 +25,7 @@ window.onload = function () {
 
     function addMarker(myMap, userName, lat, lng) {
         return new Promise(resolve => {
-            const marker = L.marker([lat,lng])
+            const marker = new L.marker([lat,lng])
                 .addTo(myMap)
                 .bindPopup(userName).openPopup();
 
@@ -41,11 +41,11 @@ window.onload = function () {
 
     function addUsers(id, userName, lat, lng) {
         return new Promise( resolve => {
-            user = {
-                id: id,
-                userName: userName,
-                lat: lat,
-                lng: lng
+            let user = {
+                id,
+                userName,
+                lat,
+                lng
             };
 
             allUsers[id] = user;
@@ -60,6 +60,15 @@ window.onload = function () {
         });
     }
 
+    function getAllUsers() {
+        return new Promise( resolve => {
+            socket.emit('getUsers');
+            console.log('getAllUsers()');
+            console.log(allUsers);
+            resolve(true);
+        });
+    }
+
     (async function init() {
         try {
             const userName = prompt('Hello! What is your name ?');
@@ -68,14 +77,14 @@ window.onload = function () {
             const lng = position.lng;
 
             if(userName && lat && lng) {
-                let myMap = await createMap(lat, lng);
-                let marker = await addMarker(myMap, userName, lat, lng);
+                const myMap = await createMap(lat, lng);
+                const marker = await addMarker(myMap, userName, lat, lng);
                 const user = await addUsers(socket.id, userName, lat, lng);
-                let status = await sendDataUser(user);
+                const updateUser = await getAllUsers();
+                const status = await sendDataUser(user);
 
-                if(status) {
-                    // socket.emit('getUsers');
-                    console.log('data send to server');
+                if(status && updateUser) {
+                    console.log('OK');
                 }
 
             } else {
@@ -114,9 +123,9 @@ window.onload = function () {
         console.log(user);
     });
 
-    setTimeout( () => {
-        socket.emit('getUsers');
-        console.log(allUsers);
-    }, 4000)
+    // setTimeout( () => {
+    //     socket.emit('getUsers');
+    //     console.log(allUsers);
+    // }, 4000)
 
 };
