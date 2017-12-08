@@ -16,9 +16,13 @@ io.on('connection', (socket) => {
     console.log('connect');
 
     socket.on('addUser', (dataUser) => {
-        connectedUsers[socket.id] = dataUser;
-        socket.emit('allUsers', connectedUsers);
+        connectedUsers[dataUser.id] = dataUser;
+         // socket.emit('allUsers', connectedUsers);
         io.sockets.emit('newUser', dataUser);
+    });
+
+    socket.on('getUsers', () => {
+        socket.emit('allUsers', connectedUsers);
     });
 
     socket.on('disconnect', () => {
