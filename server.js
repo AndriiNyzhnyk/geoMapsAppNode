@@ -13,11 +13,8 @@ app.get("/", (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('connect');
-
     socket.on('addUser', (dataUser) => {
         connectedUsers[dataUser.id] = dataUser;
-         // socket.emit('allUsers', connectedUsers);
         io.sockets.emit('newUser', dataUser);
     });
 
@@ -26,12 +23,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        io.sockets.emit('deleteUser', connectedUsers[socket.id] );
+        io.sockets.emit('deleteUser', socket.id );
         delete connectedUsers[socket.id];
     });
 
 });
-
 
 server.listen(app.get('port'), () => {
     console.log( 'Express запущенний на http://localhost:' +

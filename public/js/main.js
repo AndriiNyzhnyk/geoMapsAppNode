@@ -6,8 +6,8 @@ window.onload = function () {
     function getPosition() {
         return new Promise(resolve => {
             navigator.geolocation.getCurrentPosition( position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
+                const lat = position.coords.latitude + Math.random();
+                const lng = position.coords.longitude + Math.random();
                 resolve({lat,lng});
             });
 
@@ -29,8 +29,6 @@ window.onload = function () {
                 .addTo(myMap)
                 .bindPopup(userName).openPopup();
 
-            // removeMarker(marker);
-            // myMap.addLayer(marker);
             resolve(marker);
         });
     }
@@ -39,13 +37,14 @@ window.onload = function () {
         map.removeLayer(marker);
     }
 
-    function addUsers(id, userName, lat, lng) {
+    function addUsers(id, userName, lat, lng, marker) {
         return new Promise( resolve => {
             let user = {
                 id,
                 userName,
                 lat,
-                lng
+                lng,
+                marker
             };
 
             allUsers[id] = user;
@@ -63,29 +62,26 @@ window.onload = function () {
     function getAllUsers() {
         return new Promise( resolve => {
             socket.emit('getUsers');
-            console.log('getAllUsers()');
-            console.log(allUsers);
             resolve(true);
         });
     }
 
     (async function init() {
         try {
-            const userName = prompt('Hello! What is your name ?');
+            const userName = prompt('Hello! What is your name ?','');
             const position = await getPosition();
             const lat = position.lat;
             const lng = position.lng;
+            const userId = socket.id;
 
             if(userName && lat && lng) {
                 const myMap = await createMap(lat, lng);
                 const marker = await addMarker(myMap, userName, lat, lng);
-                const user = await addUsers(socket.id, userName, lat, lng);
+                const user = await addUsers(userId, userName, lat, lng);
                 const updateUser = await getAllUsers();
                 const status = await sendDataUser(user);
 
-                if(status && updateUser) {
-                    console.log('OK');
-                }
+                if(status && updateUser) console.log('OK');
 
             } else {
                 alert("Data incorrect");
@@ -97,16 +93,20 @@ window.onload = function () {
 
     })();
 
+    async function registerUser(id, userName, lat, lng) {
+        const user = await addUsers(id, userName, lat, lng);
+        const marker =  await addMarker(map, userName, lat, lng);
+        allUsers[id].marker = marker;
+    }
+
     socket.on('allUsers', (connectedUsers) => {
         for(id in connectedUsers) {
             const userName = connectedUsers[id].userName;
             const lat = connectedUsers[id].lat;
             const lng = connectedUsers[id].lng;
 
-            addUsers(id, userName, lat, lng);
-            addMarker(map, userName, lat, lng);
+            registerUser(id, userName, lat, lng);
         }
-        // console.log(allUsers);
     });
 
     socket.on('newUser', (dataUser) => {
@@ -115,17 +115,13 @@ window.onload = function () {
         const lat = dataUser.lat;
         const lng = dataUser.lng;
 
-        addUsers(id, userName, lat, lng);
-        addMarker(map, userName, lat, lng);
+        registerUser(id, userName, lat, lng);
     });
     
-    socket.on('deleteUser', (user) => {
-        console.log(user);
+    socket.on('deleteUser', (id) => {
+        setTimeout(function () {
+            removeMarker(allUsers[id].marker);
+            delete allUsers[id];
+        },0)
     });
-
-    // setTimeout( () => {
-    //     socket.emit('getUsers');
-    //     console.log(allUsers);
-    // }, 4000)
-
 };
