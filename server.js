@@ -1,12 +1,15 @@
 let express = require('express');
 let helmet = require('helmet');
 let cors = require('cors');
+let favicon = require('serve-favicon');
+let path = require('path');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
 
 app.use(helmet());
 app.use(cors());
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(express.static(__dirname + '/public'));
 app.set('port', process.env.PORT || 3000);
 
