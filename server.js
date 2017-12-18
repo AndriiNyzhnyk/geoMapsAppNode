@@ -1,8 +1,12 @@
 let express = require('express');
+let helmet = require('helmet');
+let cors = require('cors');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
 
+app.use(helmet());
+app.use(cors());
 app.use(express.static(__dirname + '/public'));
 app.set('port', process.env.PORT || 3000);
 
