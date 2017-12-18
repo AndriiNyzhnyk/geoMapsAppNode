@@ -18,12 +18,13 @@ app.get("/", (req, res) => {
 
 io.on('connection', (socket) => {
     socket.on('addUser', (dataUser) => {
-        connectedUsers[dataUser.id] = dataUser;
+        const newUser = JSON.parse(dataUser);
+        connectedUsers[newUser.id] = newUser;
         io.sockets.emit('newUser', dataUser);
     });
 
     socket.on('getUsers', () => {
-        socket.emit('allUsers', connectedUsers);
+        socket.emit('allUsers', JSON.stringify(connectedUsers));
     });
 
     socket.on('disconnect', () => {

@@ -6,8 +6,8 @@ window.onload = () => {
     function getPosition() {
         return new Promise(resolve => {
             navigator.geolocation.getCurrentPosition( position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
+                const lat = position.coords.latitude + Math.random();
+                const lng = position.coords.longitude + Math.random();
                 resolve({lat,lng});
             });
 
@@ -27,7 +27,8 @@ window.onload = () => {
         return new Promise(resolve => {
             const marker = new L.marker([lat,lng])
                 .addTo(myMap)
-                .bindPopup(userName).openPopup();
+                .bindPopup(userName)
+                .openPopup();
 
             resolve(marker);
         });
@@ -54,7 +55,7 @@ window.onload = () => {
 
     function sendDataUser(user) {
         return new Promise(resolve => {
-            socket.emit('addUser', user);
+            socket.emit('addUser', JSON.stringify(user));
             resolve(true);
         });
     }
@@ -95,25 +96,27 @@ window.onload = () => {
 
     async function registerUser(id, userName, lat, lng) {
         const user = await addUsers(id, userName, lat, lng);
-        const marker =  await addMarker(map, userName, lat, lng);
-        allUsers[id].marker = marker;
+        const mark =  await addMarker(map, userName, lat, lng);
+        allUsers[id].marker = mark;
     }
 
     socket.on('allUsers', (connectedUsers) => {
-        for(id in connectedUsers) {
-            const userName = connectedUsers[id].userName;
-            const lat = connectedUsers[id].lat;
-            const lng = connectedUsers[id].lng;
+        const users = JSON.parse(connectedUsers);
+        for(id in users) {
+            const userName = users[id].userName;
+            const lat = users[id].lat;
+            const lng = users[id].lng;
 
             registerUser(id, userName, lat, lng);
         }
     });
 
     socket.on('newUser', (dataUser) => {
-        const id = dataUser.id;
-        const userName = dataUser.userName;
-        const lat = dataUser.lat;
-        const lng = dataUser.lng;
+        const user = JSON.parse(dataUser);
+        const id = user.id;
+        const userName = user.userName;
+        const lat = user.lat;
+        const lng = user.lng;
 
         registerUser(id, userName, lat, lng);
     });
