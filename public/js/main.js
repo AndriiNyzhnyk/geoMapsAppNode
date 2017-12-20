@@ -6,8 +6,8 @@ window.onload = () => {
     function getPosition() {
         return new Promise(resolve => {
             navigator.geolocation.getCurrentPosition( position => {
-                const lat = position.coords.latitude + Math.random();
-                const lng = position.coords.longitude + Math.random();
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
                 resolve({lat,lng});
             });
 
