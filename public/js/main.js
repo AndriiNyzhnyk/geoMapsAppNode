@@ -95,9 +95,13 @@ window.onload = () => {
     })();
 
     async function registerUser(id, userName, lat, lng) {
-        const user = await addUsers(id, userName, lat, lng);
-        const mark =  await addMarker(map, userName, lat, lng);
-        allUsers[id].marker = mark;
+        try {
+            const user = await addUsers(id, userName, lat, lng);
+            const mark =  await addMarker(map, userName, lat, lng);
+            allUsers[id].marker = mark;
+        } catch(e) {
+            console.error(e);
+        }
     }
 
     socket.on('allUsers', (connectedUsers) => {
