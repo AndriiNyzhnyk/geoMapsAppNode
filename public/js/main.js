@@ -126,7 +126,7 @@ window.onload = () => {
     });
     
     socket.on('deleteUser', (id) => {
-        setTimeout(function () {
+        setTimeout( () => {
             removeMarker(allUsers[id].marker);
             delete allUsers[id];
         },0)
